@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioExplorer - Organización del Cuerpo Humano</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            animation: slideDown 0.5s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .menu-screen, .theory-screen, .quiz-screen, .final-screen {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .level-cards {
+            display: grid;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .level-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .level-card:hover:not(.locked) {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .level-card.locked {
+            background: linear-gradient(135deg, #718096, #4a5568);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .level-card.completed {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+
+        .level-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .level-card p {
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .theory-content {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            color: #333;
+        }
+
+        .theory-content h2 {
+            color: #667eea;
+            margin: 25px 0 15px 0;
+            font-size: 1.4em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .theory-content ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .theory-content li {
+            margin: 10px 0;
+            list-style: none;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .theory-content li::before {
+            content: "🔬";
+            position: absolute;
+            left: 0;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            color: #333;
+        }
+
+        .question {
+            font-size: 1.3em;
+            margin-bottom: 25px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .options {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+
+        .option:hover {
+            background: #edf2f7;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option.correct {
+            background: #48bb78;
+            color: white;
+            border-color: #48bb78;
+            animation: pulse 0.5s ease;
+        }
+
+        .option.incorrect {
+            background: #f56565;
+            color: white;
+            border-color: #f56565;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            animation: slideUp 0.3s ease;
+        }
+
+        .feedback.correct {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #48bb78;
+        }
+
+        .feedback.incorrect {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 2px solid #f56565;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .floating-theory {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        .theory-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .theory-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2em;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: #2d3748;
+        }
+
+        .code-display {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.5em;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 20px rgba(72, 187, 120, 0.3);
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .floating-theory {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 BioExplorer 🧬</h1>
+            <p>Organización del Cuerpo Humano - 3º ESO</p>
+        </div>
+
+        <!-- Pantalla de Menú -->
+        <div id="menuScreen" class="menu-screen">
+            <h2 style="color: #667eea; text-align: center; margin-bottom: 20px;">
+                Selecciona un Nivel 🚀
+            </h2>
+            <div class="level-cards">
+                <div class="level-card" onclick="startLevel(1)" id="level1Card">
+                    <h3>⚛️ Nivel 1: Niveles de Organización</h3>
+                    <p>Descubre cómo se organiza la materia desde los átomos hasta la biosfera.</p>
+                </div>
+                <div class="level-card locked" id="level2Card">
+                    <h3>🧬 Nivel 2: Biomoléculas Básicas</h3>
+                    <p>Explora los compuestos químicos esenciales para la vida.</p>
+                </div>
+                <div class="level-card locked" id="level3Card">
+                    <h3>💪 Nivel 3: Proteínas</h3>
+                    <p>Conoce las biomoléculas más versátiles y sus funciones.</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <p style="color: #718096;">Puntuación Total: <span id="totalScoreMenu" style="color: #667eea; font-weight: bold;">0</span></p>
+            </div>
+        </div>
+
+        <!-- Pantalla de Teoría -->
+        <div id="theoryScreen" class="theory-screen" style="display: none;">
+            <h2 style="color: #667eea; text-align: center; margin-bottom: 20px;">
+                📚 Estudia la Teoría
+            </h2>
+            <div class="theory-content" id="theoryContent"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="button" onclick="startQuiz()">
+                    Comenzar Preguntas 🎯
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla de Quiz -->
+        <div id="quizScreen" class="quiz-screen" style="display: none;">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="questionNumber">1</div>
+                    <div class="stat-label">Pregunta</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="score">0</div>
+                    <div class="stat-label">Puntos</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="correctAnswers">0</div>
+                    <div class="stat-label">Aciertos</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="incorrectAnswers">0</div>
+                    <div class="stat-label">Errores</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="quiz-container">
+                <div class="question" id="questionText"></div>
+                <div class="options" id="optionsContainer"></div>
+                <div id="feedbackContainer"></div>
+            </div>
+        </div>
+
+        <!-- Pantalla Final -->
+        <div id="finalScreen" class="final-screen" style="display: none;">
+            <div style="text-align: center;">
+                <h2 style="color: #667eea; font-size: 2.5em; margin-bottom: 20px;">
+                    🎉 ¡Enhorabuena! 🎉
+                </h2>
+                <p style="font-size: 1.3em; color: #4a5568; margin-bottom: 30px;">
+                    Has completado todos los niveles
+                </p>
+                <div style="background: #f7fafc; padding: 30px; border-radius: 15px; margin: 20px 0;">
+                    <h3 style="color: #2d3748; margin-bottom: 20px;">Tus Resultados</h3>
+                    <div style="font-size: 3em; color: #667eea; font-weight: bold;">
+                        <span id="finalScore">0</span> puntos
+                    </div>
+                    <p style="color: #718096; margin-top: 10px;">Puntuación Total</p>
+                </div>
+                <div style="background: #fef5e7; padding: 20px; border-radius: 15px; margin: 20px 0; border: 2px solid #f39c12;">
+                    <h3 style="color: #e67e22; margin-bottom: 15px;">📝 Códigos para el Profesor</h3>
+                    <p style="color: #8b6914; margin-bottom: 15px;">Muestra estos códigos a tu profesor:</p>
+                    <div id="codesContainer"></div>
+                </div>
+                <button class="button" onclick="resetGame()">
+                    Volver a Empezar 🔄
+                </button>
+            </div>
+        </div>
+
+        <!-- Botón flotante de teoría -->
+        <div class="floating-theory" id="floatingTheory" style="display: none;">
+            <button class="button" onclick="showTheoryModal()">
+                📖 Ver Teoría
+            </button>
+        </div>
+
+        <!-- Modal de teoría -->
+        <div id="theoryModal" class="theory-modal">
+            <div class="theory-modal-content">
+                <span class="close-modal" onclick="closeTheoryModal()">&times;</span>
+                <h2 style="color: #667eea; margin-bottom: 20px;">📚 Teoría del Nivel</h2>
+                <div id="modalTheoryContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos del juego
+        const gameData = {
+            currentLevel: 0,
+            currentQuestion: 0,
+            score: 0,
+            totalScore: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            levelScores: [0, 0, 0],
+            completedLevels: [],
+            codes: [],
+            attemptedCurrent: false
+        };
+
+        // Teoría de cada nivel
+        const theories = {
+            1: `
+                <h2>⚛️ Niveles de Organización</h2>
+                <ul>
+                    <li><strong>Átomos:</strong> Partículas fundamentales que forman toda la materia del universo</li>
+                    <li><strong>Moléculas:</strong> Unión química de dos o más átomos que forman compuestos</li>
+                    <li><strong>Célula:</strong> Unidad estructural y funcional de la vida, formada por la unión de moléculas organizadas</li>
+                    <li><strong>Tejidos:</strong> Agrupación de células semejantes que realizan una función determinada en el organismo</li>
+                    <li><strong>Órganos:</strong> Conjunto de diferentes tejidos que trabajan coordinadamente para realizar una función específica</li>
+                    <li><strong>Sistemas:</strong> Conjunto de órganos que actúan de forma coordinada para realizar funciones vitales complejas</li>
+                    <li><strong>Organismo:</strong> Ser vivo individual pluricelular formado por sistemas que funcionan como una unidad</li>
+                    <li><strong>Especie:</strong> Conjunto de organismos con capacidad de reproducirse entre sí y tener descendencia fértil</li>
+                    <li><strong>Población:</strong> Individuos de la misma especie que viven en un mismo lugar y tiempo compartiendo recursos</li>
+                    <li><strong>Comunidad:</strong> Conjunto de poblaciones de diferentes especies que viven e interactúan en un mismo lugar</li>
+                    <li><strong>Ecosistema:</strong> Sistema formado por la comunidad de seres vivos más el medio físico donde habitan</li>
+                    <li><strong>Biosfera:</strong> Conjunto de todos los ecosistemas del planeta Tierra donde existe vida</li>
+                </ul>
+            `,
+            2: `
+                <h2>🧬 Bioelementos</h2>
+                <ul>
+                    <li><strong>Macroelementos (C, H, O, N, P, S):</strong> Son los elementos más abundantes en los seres vivos, forman la estructura básica de todas las biomoléculas</li>
+                    <li><strong>Microelementos (Na, K, Cl, Mg, Ca, Si):</strong> Presentes en menor cantidad pero imprescindibles para funciones vitales como la transmisión nerviosa</li>
+                    <li><strong>Oligoelementos (Cr, Co, Fe, Zn):</strong> Se encuentran en cantidades muy pequeñas pero son esenciales para el metabolismo</li>
+                </ul>
+                
+                <h2>💧 Biomoléculas Inorgánicas</h2>
+                <ul>
+                    <li><strong>Agua (H₂O):</strong> Constituye el 70% del organismo, es el disolvente universal e imprescindible en todos los procesos biológicos</li>
+                    <li><strong>Sales minerales:</strong> Combinación de cationes y aniones que forman estructuras sólidas como el carbonato cálcico en los huesos</li>
+                </ul>
+                
+                <h2>🍯 Glúcidos o Hidratos de Carbono</h2>
+                <ul>
+                    <li><strong>Composición:</strong> Biomoléculas orgánicas formadas por carbono (C), hidrógeno (H) y oxígeno (O)</li>
+                    <li><strong>Monosacáridos y disacáridos:</strong> Son azúcares simples de sabor dulce, solubles en agua y con función principalmente energética</li>
+                    <li><strong>Polisacáridos:</strong> Son azúcares complejos sin sabor dulce, insolubles en agua, que sirven como reserva energética o función estructural</li>
+                </ul>
+                
+                <h2>🥑 Lípidos o Grasas</h2>
+                <ul>
+                    <li><strong>Composición:</strong> Biomoléculas formadas por C, H y O en menor cantidad que los glúcidos</li>
+                    <li><strong>Característica principal:</strong> Todos los lípidos son insolubles en agua (hidrofóbicos)</li>
+                    <li><strong>Funciones:</strong> Energética, estructural (membranas celulares) y reguladora (hormonas)</li>
+                    <li><strong>Ácidos grasos saturados:</strong> Enlaces simples C-C, sólidos a temperatura ambiente, más perjudiciales</li>
+                    <li><strong>Ácidos grasos insaturados:</strong> Dobles enlaces C=C, líquidos a temperatura ambiente, beneficiosos para la salud</li>
+                </ul>
+            `,
+            3: `
+                <h2>💪 Estructura de las Proteínas</h2>
+                <ul>
+                    <li><strong>Composición química:</strong> Biomoléculas orgánicas compuestas principalmente por C, H, O y N, y ocasionalmente P y S</li>
+                    <li><strong>Unidades básicas:</strong> Formadas por cadenas de aminoácidos, existiendo 20 aminoácidos diferentes</li>
+                    <li><strong>Importancia:</strong> Son las biomoléculas más versátiles y esenciales para la vida</li>
+                </ul>
+                
+                <h2>🛡️ Función de Defensa</h2>
+                <ul>
+                    <li><strong>Anticuerpos o inmunoglobulinas:</strong> Proteínas que protegen al organismo identificando y neutralizando patógenos</li>
+                    <li><strong>Mecanismo:</strong> Se adhieren al patógeno y lo neutralizan o alertan al sistema inmune</li>
+                </ul>
+                
+                <h2>🦵 Función Contráctil</h2>
+                <ul>
+                    <li><strong>Actina y miosina:</strong> Proteínas musculares que permiten la contracción y relajación de los músculos</li>
+                </ul>
+                
+                <h2>🦴 Función Estructural</h2>
+                <ul>
+                    <li><strong>Glucoproteínas:</strong> Forman parte de la membrana celular dando estructura</li>
+                    <li><strong>Colágeno:</strong> Proteína abundante en tendones, piel y huesos que proporciona flexibilidad</li>
+                    <li><strong>Queratina:</strong> Proteína que forma el pelo, uñas y capa externa de la piel</li>
+                </ul>
+                
+                <h2>🫁 Función de Transporte</h2>
+                <ul>
+                    <li><strong>Hemoglobina:</strong> Proteína de los glóbulos rojos que transporta oxígeno</li>
+                    <li><strong>Lipoproteínas:</strong> Transportan lípidos (grasas) por la sangre</li>
+                </ul>
+                
+                <h2>⚡ Función Enzimática</h2>
+                <ul>
+                    <li><strong>Enzimas:</strong> Proteínas que aceleran (catalizan) las reacciones químicas del metabolismo</li>
+                    <li><strong>Ejemplos:</strong> Amilasa (digiere almidón), pepsina (digiere proteínas), lipasa (digiere grasas)</li>
+                </ul>
+                
+                <h2>🫀 Función Hormonal</h2>
+                <ul>
+                    <li><strong>Hormonas proteicas:</strong> Regulan múltiples procesos fisiológicos como mensajeros químicos</li>
+                    <li><strong>Insulina:</strong> Hormona que regula el metabolismo de la glucosa</li>
+                </ul>
+            `
+        };
+
+        // Preguntas de cada nivel
+        const questions = {
+            1: [
+                {
+                    question: "¿Cuál es la unidad estructural y funcional de vida?",
+                    options: ["Átomo", "Célula", "Tejido", "Molécula"],
+                    correct: 1,
+                    explanation: "La célula es la unidad estructural y funcional de vida, formada por moléculas organizadas."
+                },
+                {
+                    question: "¿Qué nivel viene después de los tejidos?",
+                    options: ["Sistema", "Órganos", "Población", "Célula"],
+                    correct: 1,
+                    explanation: "Los órganos son el conjunto de diferentes tejidos que trabajan coordinadamente."
+                },
+                {
+                    question: "¿Qué es una población?",
+                    options: ["Individuos de especies diferentes", "Individuos de la misma especie en un lugar", "Conjunto de tejidos", "Un ecosistema"],
+                    correct: 1,
+                    explanation: "Población: individuos de la misma especie que viven en un mismo lugar y tiempo."
+                },
+                {
+                    question: "¿Qué es un ecosistema?",
+                    options: ["Solo organismos", "Comunidad + medio físico", "Grupo de células", "Solo el ambiente"],
+                    correct: 1,
+                    explanation: "Ecosistema = comunidad de seres vivos + medio físico donde habitan."
+                }
+            ],
+            2: [
+                {
+                    question: "¿Cuáles son los macroelementos principales?",
+                    options: ["Na, K, Cl", "C, H, O, N, P, S", "Cr, Co", "Fe, Zn"],
+                    correct: 1,
+                    explanation: "Macroelementos: C, H, O, N, P, S son los más abundantes en los seres vivos."
+                },
+                {
+                    question: "¿Qué porcentaje del organismo es agua?",
+                    options: ["50%", "60%", "70%", "80%"],
+                    correct: 2,
+                    explanation: "El agua constituye el 70% del organismo, siendo el disolvente universal."
+                },
+                {
+                    question: "¿Qué sales forman parte de los huesos?",
+                    options: ["Cloruro sódico", "Carbonato cálcico", "Sulfato de magnesio", "Fosfato de potasio"],
+                    correct: 1,
+                    explanation: "El carbonato cálcico forma parte de huesos, conchas y caparazones."
+                },
+                {
+                    question: "Función de monosacáridos y disacáridos:",
+                    options: ["Estructural", "Energética", "Transporte", "Defensa"],
+                    correct: 1,
+                    explanation: "Monosacáridos y disacáridos tienen función energética, son dulces y solubles."
+                },
+                {
+                    question: "Característica de todos los lípidos:",
+                    options: ["Son dulces", "Insolubles en agua", "Tienen nitrógeno", "Son proteínas"],
+                    correct: 1,
+                    explanation: "Todos los lípidos son insolubles en agua (hidrofóbicos)."
+                },
+                {
+                    question: "¿Qué ácidos grasos son más saludables?",
+                    options: ["Saturados", "Insaturados", "Ambos igual", "Ninguno"],
+                    correct: 1,
+                    explanation: "Insaturados: reducen colesterol malo LDL y aumentan el bueno HDL."
+                }
+            ],
+            3: [
+                {
+                    question: "¿Cuántos aminoácidos forman las proteínas?",
+                    options: ["10", "15", "20", "25"],
+                    correct: 2,
+                    explanation: "Las proteínas están formadas por 20 aminoácidos diferentes."
+                },
+                {
+                    question: "¿Qué proteínas defienden de patógenos?",
+                    options: ["Actina", "Anticuerpos", "Colágeno", "Hemoglobina"],
+                    correct: 1,
+                    explanation: "Anticuerpos o inmunoglobulinas defienden contra virus, bacterias y hongos."
+                },
+                {
+                    question: "Proteínas de la contracción muscular:",
+                    options: ["Insulina y glucagón", "Actina y miosina", "Colágeno y queratina", "Hemoglobina"],
+                    correct: 1,
+                    explanation: "Actina y miosina permiten la contracción muscular y el movimiento."
+                },
+                {
+                    question: "Proteína que da flexibilidad a tendones:",
+                    options: ["Queratina", "Colágeno", "Insulina", "Hemoglobina"],
+                    correct: 1,
+                    explanation: "Colágeno: proporciona flexibilidad y resistencia a tendones y piel."
+                },
+                {
+                    question: "¿Qué transporta la hemoglobina?",
+                    options: ["Glucosa", "Oxígeno", "Lípidos", "Proteínas"],
+                    correct: 1,
+                    explanation: "Hemoglobina transporta oxígeno desde los pulmones a las células."
+                },
+                {
+                    question: "Función de las enzimas:",
+                    options: ["Defender", "Acelerar reacciones", "Transportar", "Formar estructuras"],
+                    correct: 1,
+                    explanation: "Enzimas aceleran (catalizan) las reacciones químicas del metabolismo."
+                }
+            ]
+        };
+
+        // Palabras para códigos aleatorios
+        const codeWords = ["CELULA", "PROTEINA", "LIPIDO", "GLUCIDO", "TEJIDO", "ORGANO", 
+                          "ATOMO", "MOLECULA", "ENZIMA", "INSULINA", "COLAGENO", 
+                          "ECOSISTEMA", "POBLACION", "BIOSFERA", "COMUNIDAD", "ESPECIE"];
+
+        // Funciones del juego
+        function startLevel(level) {
+            if (level === 1 || gameData.completedLevels.includes(level - 1)) {
+                gameData.currentLevel = level;
+                gameData.currentQuestion = 0;
+                gameData.score = 0;
+                gameData.correctAnswers = 0;
+                gameData.incorrectAnswers = 0;
+                showTheory();
+            }
+        }
+
+        function showTheory() {
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('theoryScreen').style.display = 'block';
+            document.getElementById('theoryContent').innerHTML = theories[gameData.currentLevel];
+            document.getElementById('modalTheoryContent').innerHTML = theories[gameData.currentLevel];
+        }
+
+        function startQuiz() {
+            document.getElementById('theoryScreen').style.display = 'none';
+            document.getElementById('quizScreen').style.display = 'block';
+            document.getElementById('floatingTheory').style.display = 'block';
+            gameData.attemptedCurrent = false;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const levelQuestions = questions[gameData.currentLevel];
+            const currentQ = levelQuestions[gameData.currentQuestion];
+            
+            document.getElementById('questionNumber').textContent = gameData.currentQuestion + 1;
+            document.getElementById('score').textContent = gameData.score;
+            document.getElementById('correctAnswers').textContent = gameData.correctAnswers;
+            document.getElementById('incorrectAnswers').textContent = gameData.incorrectAnswers;
+            
+            // Actualizar barra de progreso
+            const progress = ((gameData.currentQuestion) / levelQuestions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            document.getElementById('questionText').textContent = currentQ.question;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            currentQ.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('feedbackContainer').innerHTML = '';
+            gameData.attemptedCurrent = false;
+        }
+
+        function selectOption(index) {
+            if (gameData.attemptedCurrent && questions[gameData.currentLevel][gameData.currentQuestion].correct === index) {
+                return;
+            }
+            
+            const options = document.querySelectorAll('.option');
+            const currentQ = questions[gameData.currentLevel][gameData.currentQuestion];
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            
+            options.forEach((opt, i) => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+                opt.onclick = null;
+            });
+            
+            if (index === currentQ.correct) {
+                // Respuesta correcta
+                options[index].classList.add('correct');
+                
+                if (!gameData.attemptedCurrent) {
+                    gameData.score += 10;
+                    gameData.correctAnswers++;
+                } else {
+                    gameData.score += 5;
+                }
+                
+                feedbackContainer.innerHTML = `
+                    <div class="feedback correct">
+                        ✅ ¡Correcto! ${currentQ.explanation}
+                    </div>
+                `;
+                
+                document.getElementById('score').textContent = gameData.score;
+                document.getElementById('correctAnswers').textContent = gameData.correctAnswers;
+                
+                setTimeout(() => {
+                    nextQuestion();
+                }, 2000);
+            } else {
+                // Respuesta incorrecta
+                options[index].classList.add('incorrect');
+                
+                if (!gameData.attemptedCurrent) {
+                    gameData.incorrectAnswers++;
+                    gameData.attemptedCurrent = true;
+                }
+                
+                feedbackContainer.innerHTML = `
+                    <div class="feedback incorrect">
+                        ❌ Incorrecto. ${currentQ.explanation}
+                        <button class="button" style="margin-top: 10px;" onclick="retryQuestion()">
+                            Intentar de nuevo (-5 puntos)
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('incorrectAnswers').textContent = gameData.incorrectAnswers;
+            }
+        }
+
+        function retryQuestion() {
+            showQuestion();
+        }
+
+        function nextQuestion() {
+            gameData.currentQuestion++;
+            const levelQuestions = questions[gameData.currentLevel];
+            
+            if (gameData.currentQuestion < levelQuestions.length) {
+                showQuestion();
+            } else {
+                completeLevel();
+            }
+        }
+
+        function completeLevel() {
+            // Generar código aleatorio
+            const randomCode = codeWords[Math.floor(Math.random() * codeWords.length)];
+            gameData.codes.push(`Nivel ${gameData.currentLevel}: ${randomCode}`);
+            
+            // Guardar puntuación del nivel
+            gameData.levelScores[gameData.currentLevel - 1] = gameData.score;
+            gameData.totalScore += gameData.score;
+            
+            // Marcar nivel como completado
+            if (!gameData.completedLevels.includes(gameData.currentLevel)) {
+                gameData.completedLevels.push(gameData.currentLevel);
+            }
+            
+            // Mostrar código y continuar
+            alert(`¡Nivel ${gameData.currentLevel} completado!\n\nPuntos: ${gameData.score}\nCódigo: ${randomCode}\n\n¡Recuerda este código para tu profesor!`);
+            
+            document.getElementById('floatingTheory').style.display = 'none';
+            
+            if (gameData.completedLevels.length === 3) {
+                showFinalScreen();
+            } else {
+                returnToMenu();
+            }
+        }
+
+        function returnToMenu() {
+            document.getElementById('quizScreen').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'block';
+            document.getElementById('totalScoreMenu').textContent = gameData.totalScore;
+            
+            // Actualizar estado de las tarjetas
+            gameData.completedLevels.forEach(level => {
+                document.getElementById(`level${level}Card`).classList.add('completed');
+            });
+            
+            // Desbloquear siguiente nivel
+            if (gameData.completedLevels.includes(1)) {
+                document.getElementById('level2Card').classList.remove('locked');
+                document.getElementById('level2Card').onclick = () => startLevel(2);
+            }
+            if (gameData.completedLevels.includes(2)) {
+                document.getElementById('level3Card').classList.remove('locked');
+                document.getElementById('level3Card').onclick = () => startLevel(3);
+            }
+        }
+
+        function showFinalScreen() {
+            document.getElementById('quizScreen').style.display = 'none';
+            document.getElementById('finalScreen').style.display = 'block';
+            document.getElementById('finalScore').textContent = gameData.totalScore;
+            
+            // Mostrar todos los códigos
+            const codesContainer = document.getElementById('codesContainer');
+            codesContainer.innerHTML = '';
+            gameData.codes.forEach(code => {
+                const codeDiv = document.createElement('div');
+                codeDiv.className = 'code-display';
+                codeDiv.textContent = code;
+                codesContainer.appendChild(codeDiv);
+            });
+        }
+
+        function resetGame() {
+            // Reiniciar todos los datos del juego
+            gameData.currentLevel = 0;
+            gameData.currentQuestion = 0;
+            gameData.score = 0;
+            gameData.totalScore = 0;
+            gameData.correctAnswers = 0;
+            gameData.incorrectAnswers = 0;
+            gameData.levelScores = [0, 0, 0];
+            gameData.completedLevels = [];
+            gameData.codes = [];
+            gameData.attemptedCurrent = false;
+            
+            // Reiniciar interfaz
+            document.getElementById('finalScreen').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'block';
+            document.getElementById('totalScoreMenu').textContent = '0';
+            
+            // Resetear tarjetas de nivel
+            document.getElementById('level1Card').classList.remove('completed');
+            document.getElementById('level2Card').classList.remove('completed');
+            document.getElementById('level2Card').classList.add('locked');
+            document.getElementById('level2Card').onclick = null;
+            document.getElementById('level3Card').classList.remove('completed');
+            document.getElementById('level3Card').classList.add('locked');
+            document.getElementById('level3Card').onclick = null;
+        }
+
+        function showTheoryModal() {
+            document.getElementById('theoryModal').style.display = 'block';
+        }
+
+        function closeTheoryModal() {
+            document.getElementById('theoryModal').style.display = 'none';
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('theoryModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
